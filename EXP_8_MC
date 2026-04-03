@@ -1,0 +1,77 @@
+ORG 0000H
+SJMP START          ; Important: skip interrupt area
+
+;----------------------
+; LCD Control Pins
+RS EQU P2.0
+RW EQU P2.1
+EN EQU P2.2
+
+;----------------------
+START:
+    MOV P1, #00H
+
+    ACALL LCD_INIT
+
+    MOV DPTR, #MSG
+
+NEXT_CHAR:
+    CLR A
+    MOVC A, @A+DPTR
+    JZ DONE
+
+    ACALL LCD_DATA
+    INC DPTR
+    SJMP NEXT_CHAR
+
+DONE:
+    SJMP DONE
+
+;----------------------
+LCD_INIT:
+    MOV A, #38H
+    ACALL LCD_CMD
+
+    MOV A, #0CH
+    ACALL LCD_CMD
+
+    MOV A, #01H
+    ACALL LCD_CMD
+
+    MOV A, #06H
+    ACALL LCD_CMD
+    RET
+
+;----------------------
+LCD_CMD:
+    MOV P1, A
+    CLR RS
+    CLR RW
+    SETB EN
+    ACALL DELAY
+    CLR EN
+    RET
+
+;----------------------
+LCD_DATA:
+    MOV P1, A
+    SETB RS
+    CLR RW
+    SETB EN
+    ACALL DELAY
+    CLR EN
+    RET
+
+;----------------------
+DELAY:
+    MOV R3, #100
+D1: MOV R2, #255
+D2: DJNZ R2, D2
+    DJNZ R3, D1
+    RET
+
+;----------------------
+MSG:
+    DB 'REHAN KHAN',00H
+
+END
